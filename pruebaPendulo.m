@@ -83,11 +83,16 @@ f = @(x,u) [x(2);...
 %h = @(x, u) 5 ; %FALTA ESTIMAR
 %%
 % -------------------------------------------------------------------------
-% LINEALIZACIÓN 
+% LINEALIZACIÓN DEL PÉNDULO
 % -------------------------------------------------------------------------
-x_lin=[0,0,0,0]'
-u_lin=0;
-[A,B,C,D]=linloc(f,h,x_lin,u_lin);
+f1 = @(x,u) [x(1);...
+            (x(1)*(Kf-D2)-K2*x(2)-m*g*ell*0.5*sin(x(2)))*(1/Jb2)];
+        
+h1 = @(x, u)  atan(x(1)); 
+
+xss=[pi/6,0]'
+uss=m*g*ell*sin(pi/6);
+[A,B,C,D]=linloc(f1,h1,xss,uss);
 
 % Verificación de la controlabilidad
 size_a = size(A);
@@ -99,12 +104,6 @@ if rank_calculado == n
 else
     disp("¡Rayos! Matriz NO es controlable, intenta de nuevo.")
 end
-
-%% PRUEBA LQR
-% Q=eye(4);%matriz de nxn # de var. de estado
-% R=eye(1);%Numero de entradas
-% K = lqr(A,B,Q,R); 
-% e_lqr=eig(A-B*K);
 
 %%
 % -------------------------------------------------------------------------
