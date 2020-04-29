@@ -1,0 +1,1 @@
+Correr el comando pendulo en la línea de comando.
