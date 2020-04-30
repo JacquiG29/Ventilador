@@ -6,10 +6,12 @@ parameters.m = 0.148;%*1.5;
 parameters.ell = 0.29; 
 parameters.b = 0.1111; % Probé variar este parámetro y lo más que deja es ese valor. Ahí está perfecto.
 parameters.g = 9.81;
-parameters.K2 = 1/41;%97.3644/90;
+%parameters.K2 = 1/41;%97.3644/90;
+parameters.Kambu = 97.3644;
 parameters.Jb2 = 0.0012;
 parameters.xe = [0,0]';
 parameters.ue = 0;
+parameters.Kf = 1;
 
 % etiquetas para las variables de estado y las entradas
 statevars = {'$\theta$', '$\dot{\theta}$'};
