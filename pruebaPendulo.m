@@ -1,12 +1,12 @@
-% Proyecto del ventilador mecánico
+% Proyecto del ventilador mecï¿½nico
 % Jacqueline Guarcax y Gabriela Iriarte
 % 28/04/2020
 % -------------------------------------------------------------------------
-% PARÁMETROS DEL SISTEMA
+% PARï¿½METROS DEL SISTEMA
 % -------------------------------------------------------------------------
 % -------- Engranes -------
 sf = 1.5; % Security factor
-N1N2 = 1/3; % Relación de engranajes
+N1N2 = 1/3; % Relaciï¿½n de engranajes
 
 diam2 = 157.547/(10*100); % m
 diam1 = 51.871/(10*100); % m
@@ -22,19 +22,19 @@ I1 = 0.5*m1*r1^2;
 I2 = 0.5*m2*r2^2; 
 wnl = 3*pi/2; % rad/s
 J1 = I1*wnl*sf; % J del engrane del lado del motor
-J2 = I2*wnl*sf; % J del engrane del lado del péndulo
+J2 = I2*wnl*sf; % J del engrane del lado del pï¿½ndulo
 
 % -------- AMBU -------
-k = 876.28; % cte. del resorte del Ambú (experimental)
-D2o = 1; % Damping ambú FALTA ESTIMAR
+k = 374.07; %876.28; % cte. del resorte del Ambï¿½ (experimental)
+D2o = 1; % Damping ambï¿½ FALTA ESTIMAR
 K2 = k*N1N2^2; % K reflejada
-D2 = D2o*N1N2^2; % Damping ambú reflejado
+D2 = D2o*N1N2^2; % Damping ambï¿½ reflejado
 
 % ------- BRAZO ------- 
-Dp = 1;% fricción de engranes FALTA ESTIMAR 
-Dp2 = Dp*N1N2^2; % fricción de engranes reflejado
+Dp = 1;% fricciï¿½n de engranes FALTA ESTIMAR 
+Dp2 = Dp*N1N2^2; % fricciï¿½n de engranes reflejado
 
-% J del péndulo. Cambiar este para hacerlo no lineal, etc.
+% J del pï¿½ndulo. Cambiar este para hacerlo no lineal, etc.
 modelo_pendulo = 1;
 if(modelo_pendulo == 1)
     Jb = 0.00362641*sf; % kg/m2
@@ -43,7 +43,7 @@ elseif(modelo_pendulo == 2)
 elseif(modelo_pendulo == 3)
     %Jb = ; 
 end
-Jb2 = (J2+Jb)*N1N2^2+J1; % J del péndulo reflejado
+Jb2 = (J2+Jb)*N1N2^2+J1; % J del pï¿½ndulo reflejado
 
 % ------- MOTOR -------
 Da = 0.002584*sf; % damping de armadura de motor
@@ -53,7 +53,7 @@ Jm = Ja*sf; % J motor
 
 % Del datasheet del motor:
 ea = 13.5; % V
-% wnl está arriba porque se necesitaba para la aproximación de J en
+% wnl estï¿½ arriba porque se necesitaba para la aproximaciï¿½n de J en
 % engranajes
 Tstall = 29; % Nm
 
@@ -66,63 +66,53 @@ ell = 0.29; % metros
 
 % -------------------------------------------------------------------------
 % tf del motor
-SYS = tf(alpha,[1,(Dm/Jm)+alpha*Kb,0]);
-step(SYS)
+%SYS = tf(alpha,[1,(Dm/Jm)+alpha*Kb,0]);
+%step(SYS)
 % -------------------------------------------------------------------------
 
-% -------------------------------------------------------------------------
-% CAMPOS VECTORIALES DEL SISTEMA
-% -------------------------------------------------------------------------
-% x = [x(1) x(2) x(3) x(4)]
-% u = u
-f = @(x,u) [x(2);...
-            alpha*u-(Dm/Jm + alpha*Kb)*x(2);... 
-            x(4);...
-            (x(4)*(Kf-D2)-K2*x(3)-m*g*ell*0.5*sin(x(3)))*(1/Jb2)];
-        
-%h = @(x, u) 5 ; %FALTA ESTIMAR
+
 %%
 % -------------------------------------------------------------------------
-% LINEALIZACIÓN DEL PÉNDULO
+% LINEALIZACIï¿½N DEL Pï¿½NDULO
 % -------------------------------------------------------------------------
-f1 = @(x,u) [x(1)*u;...
+f1 = @(x,u) [x(1);...
             (x(1)*(Kf-D2)-K2*x(2)-m*g*ell*0.5*sin(x(2)))*(1/Jb2)];
         
-h1 = @(x, u)  atan(x(1)); 
+h1 = @(x, u)  x; %atan(x(1)); 
 
-xss=[pi/6,0]'
-uss=m*g*ell*sin(pi/6);
+xss = [pi/6,0]';
+uss = 0; %m*g*ell*sin(pi/6);
 [A,B,C,D]=linloc(f1,h1,xss,uss);
 
 SYS2 = ss(A,B,C,D);
 step(SYS2)
 
-% Verificación de la controlabilidad
+% Verificaciï¿½n de la controlabilidad
 size_a = size(A);
 n = size_a(1);
 rank_calculado = rank(ctrb(A,B));
 
 if rank_calculado == n
-    disp("¡Felicidades! Matriz sí es controlable.")
+    disp("ï¿½Felicidades! Matriz sï¿½ es controlable.")
 else
-    disp("¡Rayos! Matriz NO es controlable, intenta de nuevo.")
+    disp("ï¿½Rayos! Matriz NO es controlable, intenta de nuevo.")
 end
 
 %%
 % -------------------------------------------------------------------------
-% SIMULACIÓN
+% SIMULACIï¿½N
 % -------------------------------------------------------------------------
-% Parámetros de la simulación
+% Parï¿½metros de la simulaciï¿½n
 t0 = 0;
-tf = 10; % tiempo de simulación
+tf = 10; % tiempo de simulaciï¿½n
 dt = 0.01; % tiempo de muestreo
 K = (tf - t0) / dt;
 
-% Condición inicial
+% Condiciï¿½n inicial
 x0 = [r0; 0; theta0; w0];
 
-% Inicialización
+% Inicializaciï¿½n
 x = x0; % vector de estado
 u = [0; 0]; % vector de entradas
 X = x; % array para almacenar las trayectorias de las variables de estado
-U = u; % array para almacenar la evolución de las entradas
+U = u; % array para almacenar la evoluciï¿½n de las entradas

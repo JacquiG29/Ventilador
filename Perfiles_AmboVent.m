@@ -30,7 +30,7 @@ vel = [129,132,134,136,137,139,140,141,142,143,143,144,144,145,146,146,146,147,1
        127,127,127,127,128,128,128,128,128,128,128,128,128,128,128,128,129,129,129,129,...
        129,129,129,129,129,128,128,128,128,128];
 
-dt = 0.01;
+dt = 0.01; % 10ms
 pos_norm = pos/max(pos);  
 aprox_der = diff(pos_norm)./dt;
 %aprox_der = smooth(aprox_der,15);
@@ -43,7 +43,7 @@ ylabel('Promiles of full range');
 title('Position');
 grid on;
 subplot(2,1,2);
-plot(aprox_der);
+plot(vel);
 xlabel('Index');
 ylabel('position change');
 title('Velocity');

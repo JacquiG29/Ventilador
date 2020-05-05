@@ -1,13 +1,12 @@
-%% PARÁMETROS A MODIFICAR
+%% PARï¿½METROS A MODIFICAR
 % -------------------------------------------------------------------------
-% PARÁMETROS DEL SISTEMA
+% PARï¿½METROS DEL SISTEMA
 % -------------------------------------------------------------------------
 parameters.m = 0.148;%*1.5; 
 parameters.ell = 0.29; 
-parameters.b = 0.1111; % Probé variar este parámetro y lo más que deja es ese valor. Ahí está perfecto.
+parameters.b = 0.1111; % Probï¿½ variar este parï¿½metro y lo mï¿½s que deja es ese valor. Ahï¿½ estï¿½ perfecto.
 parameters.g = 9.81;
-%parameters.K2 = 1/41;%97.3644/90;
-parameters.Kambu = 97.3644;
+parameters.K2 = 1/41;%97.3644/90;
 parameters.Jb2 = 0.0012;
 parameters.xe = [0,0]';
 parameters.ue = 0;
@@ -18,19 +17,19 @@ statevars = {'$\theta$', '$\dot{\theta}$'};
 inputvars = {'$\tau$'};
 
 % -------------------------------------------------------------------------
-% PARÁMETROS DE LA SIMULACIÓN
+% PARï¿½METROS DE LA SIMULACIï¿½N
 % -------------------------------------------------------------------------
 t0 = 0; % tiempo inicial
-tf = 20; % tiempo de simulación
-dt = 0.01; % período de muestreo
-% si se desea o no incluir gráficas del comportamiento del sistema
+tf = 20; % tiempo de simulaciï¿½n
+dt = 0.01; % perï¿½odo de muestreo
+% si se desea o no incluir grï¿½ficas del comportamiento del sistema
 include_plot = true;
 % si se desea o no incluir las trayectorias del control
 plot_control = false; 
-% si se desea o no incluir gráficas adicionales (diagrama de fase 2D o 3D,
+% si se desea o no incluir grï¿½ficas adicionales (diagrama de fase 2D o 3D,
 % trayectorias 2D o 3D, funciones de Lyapunov en 2D)
 include_extra_plots = false;
-animate_simulation = true; % si se desea o no animar la simulación
+animate_simulation = true; % si se desea o no animar la simulaciï¿½n
 
 % No linealizado
 % xss = [0; 0];
@@ -47,29 +46,29 @@ x0 = [pi*9/10; 0];
 u0 = 0;
 
 
-%% SOLUCIÓN NUMÉRICA DEL SISTEMA DINÁMICO
-K = (tf - t0) / dt; % número de iteraciones
+%% SOLUCIï¿½N NUMï¿½RICA DEL SISTEMA DINï¿½MICO
+K = (tf - t0) / dt; % nï¿½mero de iteraciones
 x = x0; % vector de estado
 u = u0; % vector de entradas
 % array para almacenar las trayectorias de las variables de estado
-% Inicialmente todo es cero exceptuando el primer elemento pues será igual
-% a la condición inicial. Esto aplica para el vector de estados x y para
+% Inicialmente todo es cero exceptuando el primer elemento pues serï¿½ igual
+% a la condiciï¿½n inicial. Esto aplica para el vector de estados x y para
 % las entradas u
 X = zeros(numel(x0), K+1); X(:,1) = x;
-% array para almacenar la evolución de las entradas 
+% array para almacenar la evoluciï¿½n de las entradas 
 U = zeros(numel(u0), K+1); U(:,1) = u; 
 
-% Solución recursiva del sistema dinámico
+% Soluciï¿½n recursiva del sistema dinï¿½mico
 for k = 1:K
-    % Señales de entrada
+    % Seï¿½ales de entrada
     u = 0;%control(x, parameters);
 
     % Runge Kutta lo que hace es resolver ecuaciones diferenciales que
     % tienen la forma "dy/dx = f(x,y)"
-    % Método RK4 para la aproximación numérica de la solución
-    % Se evalúa la función f(x,y) en el x anterior y y anterior
-    % en este caso sería en el x vector y u escalar anteriores
-    % dynamics es la función f(x,u)
+    % Mï¿½todo RK4 para la aproximaciï¿½n numï¿½rica de la soluciï¿½n
+    % Se evalï¿½a la funciï¿½n f(x,y) en el x anterior y y anterior
+    % en este caso serï¿½a en el x vector y u escalar anteriores
+    % dynamics es la funciï¿½n f(x,u)
     k1 = dynamics(x, u, parameters);
     k2 = dynamics(x+(dt/2)*k1, u, parameters);
     k3 = dynamics(x+(dt/2)*k2, u, parameters);
@@ -81,9 +80,9 @@ for k = 1:K
     U(:, k+1) = u;
 end
 
-%% GENERACIÓN DE GRÁFICAS
+%% GENERACIï¿½N DE GRï¿½FICAS
 % -------------------------------------------------------------------------
-% GRÁFICAS POR DEFECTO DE LAS VARIABLES DE ESTADO Y LAS ENTRADAS
+% GRï¿½FICAS POR DEFECTO DE LAS VARIABLES DE ESTADO Y LAS ENTRADAS
 % -------------------------------------------------------------------------
 if(include_plot)
     t = t0:dt:tf;
@@ -113,7 +112,7 @@ if(include_plot)
 end
 
 % -------------------------------------------------------------------------
-% GRÁFICAS ADICIONALES
+% GRï¿½FICAS ADICIONALES
 % -------------------------------------------------------------------------
 if(include_extra_plots)
     figure;
@@ -121,7 +120,7 @@ if(include_extra_plots)
 end
 
 % -------------------------------------------------------------------------
-% ANIMACIÓN (OPCIONAL)
+% ANIMACIï¿½N (OPCIONAL)
 % -------------------------------------------------------------------------
 if(animate_simulation)
     figure;

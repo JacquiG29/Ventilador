@@ -4,12 +4,13 @@
 % y un escalar u
 function f = dynamics(x, u, parameters)
 
-    parameters.m = 0.148;%*1.5; 
-    parameters.ell = 0.29; 
+    parameters.m = 0.148;%*1.5;
+    parameters.ell = 0.29;
     parameters.b = 0.1111; % Probé variar este parámetro y lo más que deja es ese valor. Ahí está perfecto.
     parameters.g = 9.81;
     %parameters.K2 = 1/41;%97.3644/90;
     parameters.Kambu = 97.3644;
+    parameters.K2 = 164.2222;
     parameters.Jb2 = 0.0012;
     parameters.xe = [0,0]';
     parameters.ue = 0;
