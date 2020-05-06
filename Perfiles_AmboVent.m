@@ -1,8 +1,14 @@
+% Perfiles_AmboVent.m
 % Perfil de posición y velocidad del AmboVent
 % Sistemas de Control 2 - Proyecto Final
 % Luis Alberto Rivera
+% Modificado por Jacqueline Guarcax y Gabriela Iriarte
+% 6/05/2020
+% En este programa guardamos los perfiles que debemos de seguir en el
+% control del ventilador mecánico.
+%% Valor de los perfiles de posición y velocidad del brazo
 
-pos = [  0,  0,  1,  2,  4,  6,  8, 10, 13, 15, 18, 21, 25, 28, 31, 35, 38, 42, 46, 50,...
+pos = [0,  0,  1,  2,  4,  6,  8, 10, 13, 15, 18, 21, 25, 28, 31, 35, 38, 42, 46, 50,...
         54, 57, 61, 66, 70, 74, 78, 82, 86, 91, 95, 99,104,108,112,117,121,125,130,134,...
        138,143,147,151,156,160,164,169,173,177,181,185,189,194,198,201,205,209,213,217,...
        220,224,227,230,234,237,240,242,245,247,249,251,253,254,255,255,255,255,255,255,...
@@ -30,23 +36,62 @@ vel = [129,132,134,136,137,139,140,141,142,143,143,144,144,145,146,146,146,147,1
        127,127,127,127,128,128,128,128,128,128,128,128,128,128,128,128,129,129,129,129,...
        129,129,129,129,129,128,128,128,128,128];
 
-dt = 0.01; % 10ms
-pos_norm = pos/max(pos);  
-aprox_der = diff(pos_norm)./dt;
-%aprox_der = smooth(aprox_der,15);
+%% Normalización de los datos
+dt = 0.01; % 10ms período de muestreo usada por los amiguis de AmboVent
+pos_norm = pos/max(pos); % Posición normalizada
+aprox_der = diff(pos_norm)./dt; % Para que la velocidad sea exacta vamos a 
+% sacar la derivada de la posición normalizada. El período de muestreo es
+% el mismo que el que usan los de AmboVent.
 
-figure(1); clf;
-subplot(2,1,1);
-plot(pos_norm);
-xlabel('Index');
-ylabel('Promiles of full range');
-title('Position');
-grid on;
-subplot(2,1,2);
-plot(vel);
-xlabel('Index');
-ylabel('position change');
-title('Velocity');
-grid on;
-%sgtitle('Position and Velocity Profiles of AmboVent System');
+%% Mapeo de la velocidad vel para que esté normalizada según la derivada
+% que encontramos anteriormente
+A = min(vel);
+B = max(vel);
+C = min(aprox_der);
+D = max(aprox_der);
+
+vel_norm = ((vel-A)./(B-A))*(D-C)+C;
+
+%% Graficamos los perfiles si plotear es 1
+plotear = 0;
+
+if (plotear == 1)
+    figure(1); clf;
+    subplot(2,1,1);
+    plot(pos_norm,'r');
+    xlabel('Index');
+    ylabel('Promiles of full range');
+    title('Position');
+    grid on;
+    subplot(2,1,2);
+    hold on
+    plot(aprox_der,'g');
+    plot(vel_norm,'b');
+    xlabel('Index');
+    ylabel('position change');
+    title('Velocity');
+    grid on;
+end
+
+%% Convertimos estos perfiles a las trayectorias que seguiran las variables de estado:
+% Nuestras variables de estado son 
+% x1 = theta motor 
+% x2 = w motor
+% x3 = theta brazo 
+% x4 = w brazo
+
+% Preguntar qué onda con el xss :(
+xss = [zeros(size(pos_norm)); zeros(size(pos_norm)); pos_norm; vel_norm];
+
+%% Encontramos uss ????? no c
+
+
+
+%% Guardamos el workspace para importarlo en el ventilador.m (el main)
+% Descomentar para guardar las variables para utilizarlas en el main.
+% save('variables_linloc','xss','uss') 
+
+
+
+
 
