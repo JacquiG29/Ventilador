@@ -57,12 +57,12 @@ J2 = I2*wnl*sf; % J del engrane del lado del péndulo
 % -------- AMBU -------
 k = 1478; %3462.75; % cte. del resorte del Ambú (experimental)
 %k=3000;
-D2o =0.5; % Damping ambú FALTA ESTIMAR N-m-s/rad
+D2o = 20; % Damping ambú FALTA ESTIMAR N-m-s/rad
 K2 = k*N1N2^2; % K reflejada
 D2 = D2o*N1N2^2; % Damping ambú reflejado
 
 % ------- BRAZO ------- 
-Dp = 100;% fricción de engranes FALTA ESTIMAR 
+Dp = 0.5;% fricción de engranes FALTA ESTIMAR 
 Dp2 = Dp*N1N2^2; % fricción de engranes reflejado
 
 % J del péndulo. Cambiar este para hacerlo no lineal, etc.
@@ -120,9 +120,9 @@ h = @(x, u) [x(1);...
 % SIMULACIÓN DE VARIABLES DE ESTADO
 % -------------------------------------------------------------------------
 %Parámetros de la simulación
-dt = 0.0001; % período de muestreo
+dt = 0.001; % período de muestreo
 t0 = 0; % tiempo inicial
-tf = 10; % tiempo final
+tf = 20; % tiempo final
 N = (tf-t0)/dt; % número de iteraciones
 
 %Inicialización y condiciones iniciales
