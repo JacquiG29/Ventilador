@@ -45,12 +45,12 @@ aprox_der = diff(pos_norm)./dt; % Para que la velocidad sea exacta vamos a
 
 %% Mapeo de la velocidad vel para que esté normalizada según la derivada
 % que encontramos anteriormente
-A = min(vel);
-B = max(vel);
-C = min(aprox_der);
-D = max(aprox_der);
+Av = min(vel);
+Bv = max(vel);
+Cv = min(aprox_der);
+Dv = max(aprox_der);
 
-vel_norm = ((vel-A)./(B-A))*(D-C)+C;
+vel_norm = ((vel-Av)./(Bv-Av))*(Dv-Cv)+Cv;
 
 %% Graficamos los perfiles si plotear es 1
 plotear = 0;
@@ -81,15 +81,17 @@ end
 % x4 = w brazo
 
 % Preguntar qué onda con el xss :(
-xss = [zeros(size(pos_norm)); zeros(size(pos_norm)); pos_norm; vel_norm];
+%xss = [zeros(size(pos_norm)); zeros(size(pos_norm)); pos_norm; vel_norm];
+
+%xss = [vel_norm;pos_norm;zeros(size(pos_norm))];
 
 %% Encontramos uss ????? no c
-
+%uss=Kf*vel_norm;
 
 
 %% Guardamos el workspace para importarlo en el ventilador.m (el main)
 % Descomentar para guardar las variables para utilizarlas en el main.
-% save('variables_linloc','xss','uss') 
+save('variables_linloc','pos_norm') 
 
 
 
