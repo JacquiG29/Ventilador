@@ -34,7 +34,7 @@ K2 = k*N1N2^2; % K reflejada
 D2 = D2o*N1N2^2; % Damping ambú reflejado
 
 %% ------- BRAZO ------- 
-Dp = 5;% fricción de engranes FALTA ESTIMAR 
+Dp = 0.8;% fricción de engranes FALTA ESTIMAR 
 Dp2 = Dp*N1N2^2; % fricción de engranes reflejado
 
 %% J del péndulo. Cambiar este para hacerlo no lineal, etc.
@@ -62,7 +62,7 @@ Tstall = 29; % Nm
 
 alpha = Tstall/(ea*Jm);
 Kb = ea/wnl;
-Kf = 5;% K fumada FALTA ESTIMAR
+Kf = 500;% K fumada FALTA ESTIMAR
 m = 0.148; % kg
 g = 9.81; % m/s2
 ell = 0.29; % metros

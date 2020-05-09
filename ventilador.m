@@ -58,8 +58,12 @@ F = @(xi,u,r) [f(xi(1:3),u); f_sigma(xi(1:3),u,r)];
 % xss=[vm,theta_des,0]
 % uss=Kf*vm;
 
-xss=[200,pi/4,0]';
+xss=[100,pi/4,0]';
 uss=Kf*xss(1);%AUN NO ESTOY SEGURA DE ESTO
+
+%xss = [5,  pi/4, 0]';          % Se define el punto de operación
+%fu = @(u) f(xss, u);              
+%uss = fsolve(fu, 1000);             % Se encuentra el uss para el punto de operación
 
 r0 = 1; %referencia
 r = r0;
@@ -68,7 +72,7 @@ r = r0;
 Q=[1  0    0   0;...
    0    1  0   0;...
    0    0    1   0;...
-   0    0    0   1000];
+   0    0    0   35000];
 R=1;
 
 sis=ss(A,B,C,D);
@@ -82,18 +86,19 @@ enable_control = 1;
 % Parámetros de la simulación
 dt = 0.001; % 1ms = período de muestreo
 t0 = 0; % tiempo inicial
-tf = 5; % tiempo final
-N = (tf-t0)/dt; % número de iteraciones
-t = t0:dt:tf; % Tiempo para el ploteo
+tf1 = 5; % tiempo final
+N = (tf1-t0)/dt; % número de iteraciones
+t = t0:dt:tf1; % Tiempo para el ploteo
 
 % Para ver la gráfica colocar un 1 en plot_sis
 plot_sis = 1;
 
 % Cambiar tipo de estímulo para u en la etapa de fumada de parámetros
-tipo_graf = 'step'; % 'seno' o 'step'
+tipo_graf = 'seno'; % 'seno' o 'step'
 
 %Inicialización y condiciones iniciales
-x0 = [0,0,0]';
+delta = 0.5;
+x0 = [xss(1)-delta,xss(2)-delta,xss(3)-delta]';
 u0 = 0;
 sigma0 = h(x0, u0) - r0;
 %sigma0=-0.5;
