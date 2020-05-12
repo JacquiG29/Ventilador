@@ -44,12 +44,14 @@ h = @(x, u) x(2);
             
 
 %f2=@(s)dynamics(s,)
-%%
+%% ------------------------------------------------------------------------
+% LINEALIZACIÓN
 % -------------------------------------------------------------------------
-% CONTROLADOR y LINEALIZACIÓN
-% -------------------------------------------------------------------------
+r0 = 1; %referencia
+r = r0;
+
 % Campo vectorial de los integradores
-f_sigma = @(x,u,r) h(x,u) - r;%Definido en leccion de LQI
+f_sigma = @(x,u,r) h(x,u)- r; %Definido en leccion de LQI
 % Campo vectorial aumentado
 F = @(xi,u,r) [f(xi(1:3),u); f_sigma(xi(1:3),u,r)];
 
@@ -58,28 +60,65 @@ F = @(xi,u,r) [f(xi(1:3),u); f_sigma(xi(1:3),u,r)];
 % xss=[vm,theta_des,0]
 % uss=Kf*vm;
 
-xss=[100,pi/4,0]';
-uss=Kf*xss(1);%AUN NO ESTOY SEGURA DE ESTO
+xss = [100,pi/4,0]'; % No importa mucho el punto de operación.
+uss = Kf*xss(1); % Sí está bien
 
 %xss = [5,  pi/4, 0]';          % Se define el punto de operación
 %fu = @(u) f(xss, u);              
 %uss = fsolve(fu, 1000);             % Se encuentra el uss para el punto de operación
 
-r0 = 1; %referencia
-r = r0;
+[A,B,C,D] = linloc(f,h,xss,uss); % Linealización local
+sis = ss(A,B,C,D); % Espacio de estados a partir de las matrices
+%% Verificación de la controlabilidad
 
-[A,B,C,D]=linloc(f,h,xss,uss);
-Q=[1  0    0   0;...
-   0    1  0   0;...
-   0    0    1   0;...
-   0    0    0   35000];
-R=1;
+size_a = size(A);
+n = size_a(1);
+rank_calculado = rank(ctrb(A,B));
 
-sis=ss(A,B,C,D);
+if rank_calculado == n
+    disp("¡Felicidades! Matriz sí es controlable.")
+else
+    disp("¡Rayos! Matriz NO es controlable, intenta de nuevo.")
+end
+%% Verificación de observabilidad
+
+OB = rank(obsv(A,C));
+
+if OB == n
+    disp("¡Felicidades! Matriz sí es observable.")
+else
+    disp("¡Rayos! Matriz NO es observable, intenta de nuevo.")
+end
+%% ------------------------------------------------------------------------
+% CONTROLADORES
+% -------------------------------------------------------------------------
+
+% 1 - Pole Placement
+% 2 - LQI
+
+controlador = 2;
+
+if (controlador == 1)
+% Pole Placement
+
+polo_fav = [-1000,-100+15i,-100-15i];
+K = place(A, B, polo_fav);
+Nbar = rscale(sis,K);
+    
+elseif (controlador == 2)
+% LQI
+
+Q = [0.3    0    0   0;...
+     0    0.01    0   0;...
+     0    0    0.001   0;...
+     0    0    0   500000];
+R = 0.001;
 Klqi = lqi(sis,Q,R);
 
-%Habilitar controlador en RK4,1 para habilitar
-enable_control = 1;
+end
+
+
+
 %% ------------------------------------------------------------------------
 % SIMULACIÓN DE VARIABLES DE ESTADO
 % -------------------------------------------------------------------------
@@ -90,8 +129,11 @@ tf1 = 5; % tiempo final
 N = (tf1-t0)/dt; % número de iteraciones
 t = t0:dt:tf1; % Tiempo para el ploteo
 
+% Habilitar controlador en RK4,1 para habilitar (referencia variable)
+enable_control = 1;
+
 % Para ver la gráfica colocar un 1 en plot_sis
-plot_sis = 1;
+plot_sis = 0;
 
 % Cambiar tipo de estímulo para u en la etapa de fumada de parámetros
 tipo_graf = 'seno'; % 'seno' o 'step'

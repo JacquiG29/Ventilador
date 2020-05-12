@@ -85,13 +85,14 @@ end
 
 %xss = [vel_norm;pos_norm;zeros(size(pos_norm))];
 
-%% Encontramos uss ????? no c
-%uss=Kf*vel_norm;
-
+%% Repmat
+pos_rep = [pos_norm pos_norm pos_norm pos_norm]';
+tiempo = (0:0.01:10-0.01)';
+ref_pos =  [tiempo pos_rep];
 
 %% Guardamos el workspace para importarlo en el ventilador.m (el main)
 % Descomentar para guardar las variables para utilizarlas en el main.
-save('variables_linloc','pos_norm') 
+%save('variables_linloc','ref_pos') 
 
 
 
