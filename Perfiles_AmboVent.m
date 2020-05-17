@@ -94,7 +94,7 @@ vel_pos =  [tiempo vel_rep];
 
 %% Guardamos el workspace para importarlo en el ventilador.m (el main)
 % Descomentar para guardar las variables para utilizarlas en el main.
-%save('variables_linloc','ref_pos','vel_pos') 
+%save('variables_linloc','ref_pos','vel_pos','pos_rep','tiempo') 
 
 
 
