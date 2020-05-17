@@ -16,7 +16,7 @@ load('variables_linloc') % Importamos el workspace de los perfiles de
 % PARÁMETROS DEL SISTEMA
 % -------------------------------------------------------------------------
 load('params');
-
+Ts=0.01;%Tiempo de muestreo
 %% ------------------------------------------------------------------------
 % PRUEBA DE ESCALÓN UNITARIO A LA FUNCIÓN DE TRANSFERENCIA DEL MOTOR
 % -------------------------------------------------------------------------
@@ -110,15 +110,20 @@ elseif (controlador == 2)
 
 Q = [0.3    0    0   0;...
      0    0.01    0   0;...
-     0    0    0.001   0;...
+     0    0    0.01   0;...
      0    0    0   500000];
 R = 0.001;
 Klqi = lqi(sis,Q,R);
 
 end
 
+%% Observador 
+P = are(A, B*inv(R)*B', Q(1:3,1:3));
+%R_L=1;
+R_L=1;
+L=P*C'*(1/R_L)
 
-
+Cr=[0 0 1];
 %% ------------------------------------------------------------------------
 % SIMULACIÓN DE VARIABLES DE ESTADO
 % -------------------------------------------------------------------------

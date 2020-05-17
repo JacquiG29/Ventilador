@@ -87,12 +87,14 @@ end
 
 %% Repmat
 pos_rep = [pos_norm pos_norm pos_norm pos_norm]';
+vel_rep = [vel_norm vel_norm vel_norm vel_norm]';
 tiempo = (0:0.01:10-0.01)';
 ref_pos =  [tiempo pos_rep];
+vel_pos =  [tiempo vel_rep];
 
 %% Guardamos el workspace para importarlo en el ventilador.m (el main)
 % Descomentar para guardar las variables para utilizarlas en el main.
-%save('variables_linloc','ref_pos') 
+%save('variables_linloc','ref_pos','vel_pos') 
 
 
 
