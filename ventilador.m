@@ -16,6 +16,8 @@ load('variables_linloc') % Importamos el workspace de los perfiles de
 % PARÁMETROS DEL SISTEMA
 % -------------------------------------------------------------------------
 load('params');
+load('jaja'); % Importamos la variable "prueba" que almacena el perfil con 
+% muestreado a 0.001 para que coincida con la animación.
 Ts=0.01;%Tiempo de muestreo
 %% ------------------------------------------------------------------------
 % PRUEBA DE ESCALÓN UNITARIO A LA FUNCIÓN DE TRANSFERENCIA DEL MOTOR
@@ -36,13 +38,21 @@ end
 % x = [     x(2)       x(3)       x(4)   ]
 % u = e(t)
 
-f = @(x,u) [alpha*u-(Dm/Jm + alpha*Kb)*x(1);... 
-            x(3);...
-            (Kf*x(1)-x(3)*(D2)-K2*x(2)-m*g*ell*0.5*sin(x(2)))*(1/Jb2)];
-        
-h = @(x, u) x(2);
-            
-
+siso = 1;
+if (siso == 0)
+    
+    f = @(x,u) [alpha*u-(Dm/Jm + alpha*Kb)*x(1);...
+        x(3);...
+        (Kf*x(1)-x(3)*(D2)-K2*x(2)-m*g*ell*0.5*sin(x(2)))*(1/Jb2)];
+    h = @(x, u) [x(2);...
+                 x(3)];
+    
+elseif (siso == 1)
+    f = @(x,u) [alpha*u-(Dm/Jm + alpha*Kb)*x(1);...
+        x(3);...
+        (Kf*x(1)-x(3)*(D2)-K2*x(2)-m*g*ell*0.5*sin(x(2)))*(1/Jb2)];
+    h = @(x, u) x(2);
+end
 %f2=@(s)dynamics(s,)
 %% ------------------------------------------------------------------------
 % LINEALIZACIÓN
@@ -96,180 +106,189 @@ end
 % 1 - Pole Placement
 % 2 - LQI
 
-controlador = 2;
+controlador = 1;
 
 if (controlador == 1)
-% Pole Placement
-
-polo_fav = [-1000,-100+15i,-100-15i];
-K = place(A, B, polo_fav);
-Nbar = rscale(sis,K);
+    % -------------------------------------------------------------------------
+    % Diseño de control por pole placement
+    % -------------------------------------------------------------------------
+    if (siso == 1)
+        polo_fav = [-1000,-100+15i,-100-15i];
+        K = place(A, B, polo_fav);
+        Nbar = rscale(sis,K);
+        % Observador
+        p2 = polo_fav-1000;
+        L = place(A',C',p2)';
+        
+        A_obs = A-L*C;
+        B_obs = [B L];
+        C_obs = eye(3);
+        D_obs = zeros(3,2);
+        
+    elseif(siso == 0)
+    disp("No hay LQR MIMO\n")
+    end
     
 elseif (controlador == 2)
-% LQI
-
-Q = [0.3    0    0   0;...
-     0    0.01    0   0;...
-     0    0    0.01   0;...
-     0    0    0   500000];
-R = 0.001;
-Klqi = lqi(sis,Q,R);
-
+    % LQI
+    if (siso == 1)
+        Q = [0.3    0    0   0;...
+            0    0.01    0   0;...
+            0    0    0.01   0;...
+            0    0    0   500000];
+        R = 0.001;
+        Klqi = lqi(sis,Q,R);
+        
+        % Observador
+        P = are(A, B*inv(R)*B', Q(1:3,1:3));
+        R_L=1;
+        L=P*C'*(1/R_L);
+        Cr=[0 0 1];
+        
+    elseif(siso == 0)
+        Q = [0.3    0    0   0;...
+            0    0.01    0   0;...
+            0    0    0.01   0;...
+            0    0    0   500000];
+        R = 0.001;
+        sis = ss(A,B,C(1,:),zeros(1,size(B,2)));
+        Klqi = lqi(sis,Q,R);
+        Klqi = [Klqi Klqi(end)];
+    end
 end
 
-%% Observador 
-P = are(A, B*inv(R)*B', Q(1:3,1:3));
-%R_L=1;
-R_L=1;
-L=P*C'*(1/R_L)
 
-Cr=[0 0 1];
 %% ------------------------------------------------------------------------
 % SIMULACIÓN DE VARIABLES DE ESTADO
 % -------------------------------------------------------------------------
-% Parámetros de la simulación
-dt = 0.001; % 1ms = período de muestreo
-t0 = 0; % tiempo inicial
-tf1 = 5; % tiempo final
-N = (tf1-t0)/dt; % número de iteraciones
-t = t0:dt:tf1; % Tiempo para el ploteo
 
-% Habilitar controlador en RK4,1 para habilitar (referencia variable)
-enable_control = 1;
-
-% Para ver la gráfica colocar un 1 en plot_sis
-plot_sis = 0;
-
-% Cambiar tipo de estímulo para u en la etapa de fumada de parámetros
-tipo_graf = 'seno'; % 'seno' o 'step'
-
-%Inicialización y condiciones iniciales
-delta = 0.5;
-x0 = [xss(1)-delta,xss(2)-delta,xss(3)-delta]';
-u0 = 0;
-sigma0 = h(x0, u0) - r0;
-%sigma0=-0.5;
-xi0 = [x0; sigma0];%Vector aumentado
-
-x = x0; % vector de estado init
-u = u0; % vector de entradas init
-sigma = sigma0; % vector de integradores
-xi = xi0; % vector de estado aumentado
-
-% Arrays para almacenar las trayectorias de las variables de estado,
-% entradas y salidas del sistema
-X = zeros(numel(x),N+1);
-U = zeros(numel(u),N+1);
-S = zeros(numel(sigma),N+1);%sigma
-XI = zeros(numel(xi), N+1);
-
-% Inicialización de arrays
-X(:,1) = x0;
-U(:,1) = u0;
-S(:,1) = sigma0;
-XI(:,1) = xi0;
-
-var=0;
-for n = 0:N
-    var=var+1;
-    % Se define la entrada para el sistema. Aquí debe colocarse el
-    % controlador al momento de querer estabilizar el sistema
-    %u = [0; 0];
-    %[A,B,C,D]=linloc(f,h,x_lin,u_lin);% En estos mis puntos de operacion
-    %serian los valores de array de pos 
-    if (strcmp(tipo_graf,'seno'))
-        u = 5*sin(2*pi*dt*n);
-    elseif (strcmp(tipo_graf,'step'))
-        u = 1;
-    end
-
-    % Se actualiza el estado del sistema mediante una discretización por 
-    % el método de Runge-Kutta (RK4)
-    if (enable_control == 0)
-        % Se actualiza la referencia (si aplica)
-        k1 = f(x, u);
-        k2 = f(x+(dt/2)*k1, u);
-        k3 = f(x+(dt/2)*k2, u);
-        k4 = f(x+dt*k3, u);
-        x = x + (dt/6)*(k1+2*k2+2*k3+k4);
-        
-        % Se guardan las trayectorias del estado y las entradas
-        X(:,n+1) = x;
-        U(:,n+1) = u;
-    end 
+%% ------------------------------------------------------------------------
+% LQI - Referencia de posición
+% -------------------------------------------------------------------------
+if (controlador == 2)
     
-    if (enable_control == 1)
-        % Se actualiza la referencia (si aplica)
-        u = -Klqi*xi;%como xi incluye a sigma esto es igual a -K1*x-K2*sigma
-        
-        if (var==length(pos))%Busco recorrer el array como un bucle
-            var = 0;
-        end
-        
-        r = pos_norm(var+1);%asigno el perfil de posición como referencia
-        
-        % Se actualiza el estado del sistema mediante una discretización por
-        % el método de Runge-Kutta (RK4)
-        k1 = F(xi, u, r);
-        k2 = F(xi+(dt/2)*k1, u, r);
-        k3 = F(xi+(dt/2)*k2, u, r);
-        k4 = F(xi+dt*k3, u, r);
-        xi = xi + (dt/6)*(k1+2*k2+2*k3+k4);
-        
-        % Se extrae el vector de estado original y el de los integradores
-        x = xi(1:length(x));
-        sigma = xi(1:length(sigma));
-        
-        % Se guardan las trayectorias del estado y las entradas
-        X(:,n+1) = x;
-        U(:,n+1) = u;
-        S(:,n+1) = sigma;
-        XI(:,n+1) = xi;
-    end 
+    
+    disp("Falta agregar simulación LQI\n")
+    
+    
+    
 end
-
-
-if (plot_sis == 1)
-    figure()
-    plot(t,X(1,:),t,X(2,:),t,X(3,:),t,U(1,:));
-    %figure(3)
-    %plot(t,X(4,:));
-    leg1 = legend('$\dot{\theta_m}$','$\theta _p$','$\dot{\theta _p}$','$V_{in}$');
-    set(leg1,'Interpreter','latex');
+%% ------------------------------------------------------------------------
+% LQR - Referencia de posición
+% -------------------------------------------------------------------------
+% Init cond
+if (controlador == 1)
+    x0 = 0.1 .* ones(3,1);
+    
+    % Parámetros de la simulación
+    dt = 0.001; % 1ms = período de muestreo
+    t0 = 0; % tiempo inicial
+    tf1 = 5; % tiempo final
+    N = (tf1-t0)/dt; % número de iteraciones
+    
+    % Discretización por Euler
+    use_euler = false; % verdadero si se quiere discretizar con euler, falso si
+    % se quiere ZOH
+    if(use_euler)
+        % Completar las matrices discretas obtenidas mediante Euler
+        Ad = eye(3)+A*dt;
+        Bd = B*dt;
+        Cd = C;
+        Dd = D;
+    else
+        % Completar las matrices discretas obtenidas mediante ZOH, las
+        % funciones integral y expm de MATLAB pueden serle de utilidad
+        Ad = expm(A*dt);
+        
+        fun=@(s)expm(s*A);%definir funcion a integrar
+        Bd = (integral(fun,0,dt,'ArrayValued',true))*B;%opcion elegida porque se trabaja con matrices
+        Cd = C;
+        Dd = D;
+        %integral y expm para funciones
+    end
+    
+    % Simulación del sistema
+    x = x0; % Inicialización del vector de estado
+    xhat = zeros(3,1); % Inicializamos el estimador
+    X = x; % Array para guardar trayectorias de variables de estado
+    Xhat = xhat; % Array para guardar trayectorias del estimado de x
+    y = Cd*x; % Inicialización de la salida real
+    yhat = Cd*xhat; % Inicialización de la salida estimada
+    U = zeros(1,1); % Array para guardar entradas al sistema
+    Y = y; % yhat para ver cómo funciona con observador
+    
+    % Parámetros para la animación
+    max_angle = pi/3;
+    min_angle = pi/4;
+    pendrod = plot([0,0], [0,0], 'Color', [0.12, 0.12, 0.12], 'LineWidth', 5);
+    xlim([0 0.3]);
+    ylim([0 0.3]);
+    pos = [0.1 0 0.1 0.1];
+    rectangle('Position',pos,'Curvature',[1 1],'EdgeColor',[0 .5 .5],'FaceColor',[0 .5 .5])
+    xlabel('$x$ (m)','Interpreter','latex','FontSize', 16);
+    ylabel('$y$ (m)', 'Interpreter', 'latex', 'FontSize', 16);
+    
+    for n = 0:N-2
+        
+        r = prueba(n+1,2); % Asignamos el perfil de posición como referencia
+        u = r*Nbar-K*xhat; % Aplicamos control LQR
+        
+        % Simulación del sistema para el observador
+        xhat = Ad*xhat + Bd*u + L*(y - yhat)*dt;
+        yhat = Cd*xhat;
+        
+        % Sistema real
+        x = Ad*x + Bd*u;
+        y = Cd*x;
+        
+        % Recopilación de datos
+        X = [X, x];
+        Xhat = [Xhat, xhat];
+        U = [U, u];
+        Y = [Y, y]; % Y, yhat para ver cómo funciona con observador
+        
+        x2_mapped = map(0,1,min_angle,max_angle,x(2));
+        pendrod.XData = [ell*sin(x2_mapped) 0];%[0,ell*sin(x)];
+        pendrod.YData = [ell*cos(x2_mapped) 0];%[0,ell*cos(x)];
+        title('Ventilador con LQR y referencia de posición')
+        drawnow limitrate
+        pause(dt);
+        
+    end
+    
+    % Graficamos los resultados
+    t = t0:dt:tf1;
+    
+    figure;
+    plot(t(1:5000), Y', 'LineWidth', 1);
+    hold on;
+    plot(prueba(:,1), prueba(:,2), '--','LineWidth', 1);
+    hold off;
+    title('Trayectoria de la salida');
+    xlabel('$t$','Interpreter','latex','FontSize', 16);
+    ylabel('$y(t)$', 'Interpreter', 'latex', 'FontSize', 16);
+    l = legend('$y(t)$', '$r(t)$', 'Location', 'southeast');
+    set(l, 'Interpreter', 'latex', 'FontSize', 12);
+    
+    figure;
+    plot(t(1:5000), X', 'LineWidth', 1);
+    hold on;
+    ax = gca;
+    ax.ColorOrderIndex = 1;
+    plot(t(1:5000), Xhat', '--', 'LineWidth', 1);
+    hold off;
+    title('Trayectorias de variables de estado');
+    xlabel('$t$','Interpreter','latex','FontSize', 16);
+    ylabel('$\mathbf{x}(t)$', 'Interpreter', 'latex', 'FontSize', 16);
+    l = legend('$x_1(t)$', '$x_2(t)$', '$x_3(t)$', '$\hat{x_1}(t)$', '$\hat{x_2}(t)$', ...
+        '$\hat{x_3}(t)$', 'Location', 'southeast');
+    set(l, 'Interpreter', 'latex', 'FontSize', 12);
+    
+    figure;
+    plot(t(1:5000), U', 'LineWidth', 1);
+    title('Entrada del sistema con respecto al tiempo');
+    xlabel('$t$','Interpreter','latex','FontSize', 16);
+    ylabel('$\mathbf{u}(t)$', 'Interpreter', 'latex', 'FontSize', 16);
+    l = legend('$u_1(t)$','Location', 'southeast');
+    set(l, 'Interpreter', 'latex', 'FontSize', 12);
 end
-%%
-% % Verificación de la controlabilidad
-% size_a = size(A);
-% n = size_a(1);
-% rank_calculado = rank(ctrb(A,B));
-% 
-% if rank_calculado == n
-%     disp("¡Felicidades! Matriz sí es controlable.")
-% else
-%     disp("¡Rayos! Matriz NO es controlable, intenta de nuevo.")
-% end
-% 
-% %% PRUEBA LQR
-% % Q=eye(4);%matriz de nxn # de var. de estado
-% % R=eye(1);%Numero de entradas
-% % K = lqr(A,B,Q,R); 
-% % e_lqr=eig(A-B*K);
-% 
-% %%
-% % -------------------------------------------------------------------------
-% % SIMULACIÓN
-% % -------------------------------------------------------------------------
-% % Parámetros de la simulación
-% t0 = 0;
-% tf = 10; % tiempo de simulación
-% dt = 0.01; % tiempo de muestreo
-% K = (tf - t0) / dt;
-% 
-% % Condición inicial
-% x0 = [r0; 0; theta0; w0];
-% 
-% % Inicialización
-% x = x0; % vector de estado
-% u = [0; 0]; % vector de entradas
-% X = x; % array para almacenar las trayectorias de las variables de estado
-% U = u; % array para almacenar la evolución de las entradas
