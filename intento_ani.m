@@ -18,16 +18,16 @@ load('variables_linloc')
 %     drawnow %limitrate
 % end
 
-t = t0:dt:tf1; %size(Ref',1)
+t = t0:0.0001:tf1; %size(Ref',1)
 waka = t0:0.01:tf1;
-prueba = zeros(50002, 2);
+prueba2 = zeros(50002, 2);
 valor = 1;
 paquita = 1;
 for waka = t0:0.01:tf1
-    for ta = 1:10
-        prueba(paquita,:)=[t(paquita) ref_pos(valor,2)];
+    for ta = 1:100
+        prueba2(paquita,:)=[t(paquita) ref_pos(valor,2)];
         paquita = paquita + 1;
     end
     valor = valor + 1;
 end
-prueba = prueba(1:5000,:);
+prueba2 = prueba2(1:50001,:);
